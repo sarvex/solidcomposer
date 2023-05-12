@@ -20,7 +20,6 @@ class Migration(DataMigration):
 
     def backwards(self, orm):
         "there's no turning back!"
-        pass
 
 
     models = {

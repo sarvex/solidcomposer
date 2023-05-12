@@ -47,9 +47,7 @@ class ChatRoom(SerializableModel):
         if not user.is_authenticated():
             return False
 
-        if self.permission_type == ChatRoom.OPEN:
-            return True
-        else:
+        if self.permission_type != ChatRoom.OPEN:
             if self.permission_type == ChatRoom.WHITELIST:
                 # user has to be on the whitelist
                 if self.whitelist.filter(pk=user.id).count() != 1:
@@ -59,7 +57,7 @@ class ChatRoom(SerializableModel):
                 if self.blacklist.filter(pk=user.id).count() == 1:
                     return False
 
-            return True
+        return True
 
     def is_active(self):
         """
@@ -67,13 +65,9 @@ class ChatRoom(SerializableModel):
         within the chat room's active period.
         """
         now = datetime.now()
-        if not self.start_date is None:
-            if self.start_date > now:
-                return False
-        if not self.end_date is None:
-            if self.end_date < now:
-                return False
-        return True
+        if self.start_date is not None and self.start_date > now:
+            return False
+        return self.end_date is None or self.end_date >= now
 
 
     def __unicode__(self):
@@ -122,13 +116,13 @@ class ChatMessage(SerializableModel):
         that representation.
         """
         if self.type == ChatMessage.SYSTEM:
-            return u'SYSTEM: %s' % self.message[:30]
+            return f'SYSTEM: {self.message[:30]}'
         elif self.type == ChatMessage.JOIN:
-            return 'JOIN: %s' % self.author
+            return f'JOIN: {self.author}'
         elif self.type == ChatMessage.LEAVE:
-            return 'LEAVE: %s' % self.author
+            return f'LEAVE: {self.author}'
         elif self.type == ChatMessage.ACTION:
-            return 'ACTION: %s > %s' % (self.author, self.message[:30])
+            return f'ACTION: {self.author} > {self.message[:30]}'
         return self.message[:30]
 
 class Appearance(SerializableModel):
@@ -153,4 +147,4 @@ class Appearance(SerializableModel):
         super(Appearance, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return "%s in %s on %s" % (self.person, self.room, self.timestamp)
+        return f"{self.person} in {self.room} on {self.timestamp}"

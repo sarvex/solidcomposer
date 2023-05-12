@@ -36,15 +36,18 @@ class SimpleTest(TestCase):
 
         # create some users
         for username in ("skiessi", "superjoe", "just64helpin"):
-            self.client.post(register_url, {
-                'username': username,
-                'artist_name': username + ' band',
-                'email': username + '@mailinator.com',
-                'password': 'temp1234',
-                'confirm_password': 'temp1234',
-                'agree_to_terms': True,
-                'plan': 0,
-            })
+            self.client.post(
+                register_url,
+                {
+                    'username': username,
+                    'artist_name': f'{username} band',
+                    'email': f'{username}@mailinator.com',
+                    'password': 'temp1234',
+                    'confirm_password': 'temp1234',
+                    'agree_to_terms': True,
+                    'plan': 0,
+                },
+            )
             code = User.objects.get(username=username).get_profile().activate_code
             self.client.get(reverse('confirm', args=(username, code)))
 
@@ -2197,7 +2200,7 @@ class SimpleTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
         song = Song.objects.order_by('-pk')[0]
-        
+
         # anon
         self.client.logout()
         self.checkLoginRedirect(download_zip_url)
@@ -2231,8 +2234,7 @@ class SimpleTest(TestCase):
         # TODO
 
         # normal case
-        sample_deps = []
-        sample_deps.append(SampleDependency.objects.get(title='a.wav'))
+        sample_deps = [SampleDependency.objects.get(title='a.wav')]
         sample_deps.append(SampleDependency.objects.get(title='c.wav'))
         sample_deps.append(SampleDependency.objects.get(title='e.wav'))
         response = self.client.get(download_zip_url, {

@@ -7,10 +7,7 @@ from django.db import models
 class Migration(DataMigration):
 
     def root_node(self, node):
-        if node.parent == None:
-            return node
-        else:
-            return self.root_node(node.parent)
+        return node if node.parent is None else self.root_node(node.parent)
 
     def forwards(self, orm):
         for node in orm['main.SongCommentNode'].objects.filter(song__isnull=True):

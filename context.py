@@ -7,10 +7,6 @@ def ssl_media(request):
     media_url = settings.MEDIA_URL
     parts = media_url.split(':')
 
-    if request.is_secure():
-        protocol = 'https'
-    else:
-        protocol = 'http'
-
-    new_media_url = protocol + ":" + ":".join(parts[1:])
+    protocol = 'https' if request.is_secure() else 'http'
+    new_media_url = f"{protocol}:" + ":".join(parts[1:])
     return {'MEDIA_URL': new_media_url}

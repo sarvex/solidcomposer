@@ -51,14 +51,13 @@ def user_login(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             user = authenticate(username=form.cleaned_data.get('username'), password=form.cleaned_data.get('password'))
-            if user is not None:
-                if user.is_active and user.get_profile().activated:
-                    login(request, user)
-                    return HttpResponseRedirect(form.cleaned_data.get('next_url'))
-                else:
-                    err_msg = design.your_account_not_activated
-            else:
+            if user is None:
                 err_msg = design.invalid_login
+            elif user.is_active and user.get_profile().activated:
+                login(request, user)
+                return HttpResponseRedirect(form.cleaned_data.get('next_url'))
+            else:
+                err_msg = design.your_account_not_activated
     else:
         home_url = reverse('home')
         form = LoginForm(initial={'next_url': request.GET.get('next', home_url)})
@@ -69,14 +68,13 @@ def ajax_login(request):
     success = False
     if request.method == 'POST':
         user = authenticate(username=request.POST.get('username', ''), password=request.POST.get('password', ''))
-        if user is not None:
-            if user.is_active and user.get_profile().activated:
-                login(request, user)
-                success = True
-            else:
-                err_msg = design.your_account_not_activated
-        else:
+        if user is None:
             err_msg = design.invalid_login
+        elif user.is_active and user.get_profile().activated:
+            login(request, user)
+            success = True
+        else:
+            err_msg = design.your_account_not_activated
     else:
         err_msg = design.no_login_data_supplied
 
@@ -105,13 +103,12 @@ def ajax_comment(request):
         return json_failure(design.bad_song_comment_node_id)
 
     # make sure the user has permission to critique
-    if parent.song is not None:
-        if not parent.song.permission_to_critique(request.user):
-            return json_failure(design.you_dont_have_permission_to_comment)
-    else:
+    if parent.song is None:
         if not parent.version.project.band.permission_to_critique(request.user):
             return json_failure(design.you_dont_have_permission_to_comment)
 
+    elif not parent.song.permission_to_critique(request.user):
+        return json_failure(design.you_dont_have_permission_to_comment)
     # make sure the parent has enabled replies
     if parent.reply_disabled:
         return json_failure(design.comments_disabled_for_this_version)
@@ -359,19 +356,18 @@ def contact(request):
             # email myself
             customer_email = form.cleaned_data.get('from_email')
             content = form.cleaned_data.get('message')
-            to_email = 'support@solidcomposer.com'
             from_email = 'support@solidcomposer.com'
             subject = "SolidComposer Contact Message from {0}".format(customer_email)
             message = get_template('contact_message.txt').render(Context({'email': customer_email, 'content': content}))
+            to_email = 'support@solidcomposer.com'
             msg = EmailMessage(subject, message, from_email, [to_email], headers={'Reply-To': customer_email})
             msg.send(fail_silently=True)
 
             return render_to_response('contact_thanks.html', locals(), context_instance=RequestContext(request))
+    elif request.user.is_authenticated():
+        form = ContactForm(initial={'from_email': request.user.email})
     else:
-        if request.user.is_authenticated():
-            form = ContactForm(initial={'from_email': request.user.email})
-        else:
-            form = ContactForm()
+        form = ContactForm()
 
     return render_to_response('contact.html', locals(), context_instance=RequestContext(request))
 
@@ -498,10 +494,10 @@ def account_preferences(request):
 
 @login_required
 def account_password(request):
-    user = request.user
     err_msg = ''
     if request.method == 'POST':
         form = ChangePasswordForm(request.POST)
+        user = request.user
         if form.is_valid():
             old_password = form.cleaned_data.get('old_password')
             if user.check_password(old_password):

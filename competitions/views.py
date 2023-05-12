@@ -46,9 +46,11 @@ def ajax_submit_entry(request):
     if mp3_file is not None and mp3_file.size > settings.FILE_UPLOAD_SIZE_CAP:
         return json_failure(design.mp3_too_big)
 
-    if source_file is not None:
-        if source_file.size > settings.FILE_UPLOAD_SIZE_CAP:
-            return json_failure(design.source_file_too_big)
+    if (
+        source_file is not None
+        and source_file.size > settings.FILE_UPLOAD_SIZE_CAP
+    ):
+        return json_failure(design.source_file_too_big)
 
     if title == '':
         return json_failure(design.entry_title_required)
@@ -60,7 +62,7 @@ def ajax_submit_entry(request):
             entry = entries[0]
             project = Project.objects.get(latest_version__song=entry.song)
             new_version_number = project.latest_version.version + 1
-            filename_appendix = "_" + str(new_version_number)
+            filename_appendix = f"_{str(new_version_number)}"
         else:
             filename_appendix = ""
 
@@ -154,10 +156,7 @@ def max_vote_count(entry_count):
     given how many entrants there are, compute how many votes each person gets.
     """
     x = int(entry_count / 3)
-    if x < 1:
-        x = 1
-
-    return x
+    return max(x, 1)
 
 def song_to_dict(song, user):
     d = song.to_dict(chains=['owner', 'studio', 'band', 'comment_node'])
@@ -518,8 +517,6 @@ def ajax_vote(request, entry_id):
 
 @json_login_required
 def ajax_unvote(request, entry_id):
-    data = {'success': False}
-
     try:
         entry_id = int(entry_id)
     except ValueError:
@@ -530,6 +527,6 @@ def ajax_unvote(request, entry_id):
     if votes.count() > 0:
         votes[0].delete()
 
-    data['success'] = True
+    data = {'success': True}
     return json_response(data)
 

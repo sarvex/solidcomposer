@@ -209,7 +209,7 @@ class AccountPlan(SerializableModel):
     band_count_limit = models.IntegerField()
 
     def __unicode__(self):
-        return "%s - $%s/mo" % (self.title, self.usd_per_month)
+        return f"{self.title} - ${self.usd_per_month}/mo"
 
 class Transaction(models.Model):
     """
@@ -366,7 +366,10 @@ class Profile(SerializableModel):
         return BandMember.objects.filter(user=self.user, role__in=(BandMember.BAND_MEMBER,BandMember.MANAGER)).count() 
 
     def space_used(self):
-        return sum([member.space_donated for member in BandMember.objects.filter(user=self.user)])
+        return sum(
+            member.space_donated
+            for member in BandMember.objects.filter(user=self.user)
+        )
 
 class Song(SerializableModel):
     PUBLIC_ATTRS = (
@@ -433,9 +436,9 @@ class Song(SerializableModel):
         returns a string fit for representing this song
         """
         if self.album == "":
-            return "%s - %s" % (self.band.title, self.title)
+            return f"{self.band.title} - {self.title}"
         else:
-            return "%s - %s (%s)" % (self.band.title, self.title, self.album)
+            return f"{self.band.title} - {self.title} ({self.album})"
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -451,13 +454,12 @@ class Song(SerializableModel):
         new_access = self.process_access(access)
         if self.is_open_source:
             data['source_file'] = self.source_file
-            if self.studio is not None:
-                if 'studio' in forwards:
-                    data['studio'] = self.studio.to_dict(new_access, new_chains)
-                else:
-                    data['studio'] = self.studio.pk
-            else:
+            if self.studio is None:
                 data['studio'] = None
+            elif 'studio' in forwards:
+                data['studio'] = self.studio.to_dict(new_access, new_chains)
+            else:
+                data['studio'] = self.studio.pk
             if 'plugins' in forwards:
                 data['plugins'] = [obj.to_dict(new_access, new_chains) for obj in self.plugins.all()]
             else:
@@ -505,9 +507,9 @@ class SongCommentNode(SerializableModel):
 
     def __unicode__(self):
         if self.position is None:
-            return u"%s: %s" % (self.owner, self.content[:30])
+            return f"{self.owner}: {self.content[:30]}"
         else:
-            return u"%s (%s): %s" % (self.owner, self.position, self.content[:30])
+            return f"{self.owner} ({self.position}): {self.content[:30]}"
 
     def to_dict(self, access=SerializableModel.PUBLIC, chains=[]):
         data = super(SongCommentNode, self).to_dict(access, chains)
@@ -530,10 +532,7 @@ class SongCommentNode(SerializableModel):
             if self.parent != None:
                 entry = workshop.models.LogEntry()
                 entry.entry_type = workshop.models.LogEntry.SONG_CRITIQUE
-                if self.song is not None:
-                    entry.band = self.song.band
-                else:
-                    entry.band = self.version.project.band
+                entry.band = self.version.project.band if self.song is None else self.song.band
                 entry.catalyst = self.owner
                 entry.node = self
                 if self.song is not None:

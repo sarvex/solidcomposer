@@ -8,7 +8,7 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         for band in orm.Band.objects.all():
-            if band.url == None:
+            if band.url is None:
                 # break title into url safe string
                 others = orm.Band.objects.filter(url=band.title).count()
                 if others == 0:
@@ -29,7 +29,6 @@ class Migration(DataMigration):
 
     def backwards(self, orm):
         "not needed."
-        pass
 
 
     models = {

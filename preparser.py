@@ -109,7 +109,7 @@ def walk(compile_func):
                         out_file = os.path.join(out_folder, relative, new_filename)
                         compile_func(settings.PREPARSE_CHAIN[i], in_file, out_file)
 
-watchlist = [{} for x in settings.PREPARSE_CHAIN]
+watchlist = [{} for _ in settings.PREPARSE_CHAIN]
 ignored_extensions = (
     '.swp',
 )
@@ -121,14 +121,14 @@ def examine_watchlist(chain_index):
     new_item = False
     in_folder, _out_folder, _out_ext, _cmd = settings.PREPARSE_CHAIN[chain_index]
     watch_folders = settings.TEMPLATE_DIRS + (in_folder,)
-    watch_folders = set([os.path.abspath(folder) for folder in watch_folders])
+    watch_folders = {os.path.abspath(folder) for folder in watch_folders}
     for template_dir in watch_folders:
         for root, _dirs, files in os.walk(template_dir):
             for file in files:
                 _prefix, ext = os.path.splitext(file)
                 if ext in ignored_extensions:
                     continue
-                
+
                 full_path = os.path.join(root, file)
                 file_modified = os.path.getmtime(full_path)
                 if watchlist[chain_index].has_key(full_path):
@@ -147,7 +147,7 @@ def compile_file(preparse_tuple, source, dest):
     _in_folder, _out_folder, out_ext, cmd = preparse_tuple
     _source_path, source_title = os.path.split(source)
     _prefix, ext = os.path.splitext(source_title)
-    print("Parsing %s." % source_title)
+    print(f"Parsing {source_title}.")
 
     in_text = open(source, 'r').read().decode()
     template = Template(in_text)
@@ -179,7 +179,7 @@ def compile_file(preparse_tuple, source, dest):
 
 def clean_file(preparse_tuple, source, dest, force):
     if os.path.exists(dest):
-        print("removing %s" % dest)
+        print(f"removing {dest}")
         os.remove(dest)
 
 def parse():

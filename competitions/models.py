@@ -82,7 +82,7 @@ class Competition(SerializableModel):
         return self.vote_deadline is not None and now >= self.vote_deadline
 
     def __unicode__(self):
-        return "%s on %s" % (self.title, self.start_date)
+        return f"{self.title} on {self.start_date}"
 
     def save(self, *args, **kwargs):
         "Update populated fields before saving"
@@ -134,7 +134,7 @@ class ThumbsUp(SerializableModel):
     date_given = models.DateTimeField()
 
     def __unicode__(self):
-        return "%s gives +1 to %s" % (self.owner, self.entry)
+        return f"{self.owner} gives +1 to {self.entry}"
 
     def save(self, *args, **kwargs):
         "Update populated fields before saving"
@@ -164,7 +164,7 @@ class Entry(SerializableModel):
     edit_date = models.DateTimeField()
 
     def __unicode__(self):
-        return "%s in %s" % (self.song, self.competition)
+        return f"{self.song} in {self.competition}"
 
     def save(self, *args, **kwargs):
         self.edit_date = datetime.now()

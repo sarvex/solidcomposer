@@ -24,4 +24,4 @@ if_you_want_lp_set_date = 'If you want a listening party, you need to set a date
 lp_gt_submission_deadline = 'Listening party must be after submission deadline.'
 only_host_can_edit_compo = "Only the competition's host can edit the competition."
 
-unknown_studio_icon = settings.MEDIA_URL + "img/question-white.png"
+unknown_studio_icon = f"{settings.MEDIA_URL}img/question-white.png"

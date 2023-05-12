@@ -3,9 +3,8 @@ import hashlib
 
 def fileHash(filename):
     md5 = hashlib.md5()
-    f = open(filename, 'rb')
-    md5.update(f.read())
-    f.close()
+    with open(filename, 'rb') as f:
+        md5.update(f.read())
     return md5.hexdigest()
 
 def ensurePathExists(filename):

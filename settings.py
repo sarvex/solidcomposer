@@ -56,7 +56,7 @@ DEFAULT_FROM_EMAIL = 'admin@solidcomposer.com'
 MEDIA_ROOT = absolute('media')
 # media server must to support http and https at the same URL
 MEDIA_URL = 'http://localhost/media/'
-ADMIN_MEDIA_PREFIX = MEDIA_URL + 'admin/'
+ADMIN_MEDIA_PREFIX = f'{MEDIA_URL}admin/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '2_l-92-j(^)a=vsynmsw1d(efi!w@w#j#v@ucv^2i7cfsk=!8='

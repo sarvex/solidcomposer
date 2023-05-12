@@ -229,7 +229,7 @@ def handle_project_file(filename, user, song, filename_appendix=""):
             dep = SampleDependency()
             dep.title = title
             dep.song = song
-                
+
             # if the title matches anthing the user or band has already uploaded,
             # establish a link.
             existing_samples = UploadedSample.objects.filter(title=title).filter(Q(user=user)|Q(band=song.band))
@@ -243,7 +243,7 @@ def handle_project_file(filename, user, song, filename_appendix=""):
             dep.save()
 
         if dawExt:
-            source_file_title += filename_appendix + "." + dawExt
+            source_file_title += f"{filename_appendix}.{dawExt}"
 
         usingDaw = True
     except daw.exceptions.LoadError:
@@ -300,10 +300,9 @@ def handle_mp3_upload(file_mp3_handle, song, max_song_len=None, filename_appendi
         return data
 
     # reject if too long
-    if max_song_len != None:
-        if audio.info.length > max_song_len:
-            data['reason'] = design.song_too_long
-            return data
+    if max_song_len != None and audio.info.length > max_song_len:
+        data['reason'] = design.song_too_long
+        return data
 
     # enforce ID3 tags
     try:
@@ -335,8 +334,7 @@ def handle_mp3_upload(file_mp3_handle, song, max_song_len=None, filename_appendi
     move_to_storage(mp3_tmp_handle.name, song.mp3_file)
 
     song.band.save()
-    data = {'success': True}
-    return data
+    return {'success': True}
 
 def handle_project_upload(file_source_handle, user, song, filename_appendix=""):
     # upload project file to temp file
@@ -383,11 +381,6 @@ def upload_song(user, file_mp3_handle=None, file_source_handle=None, max_song_le
             effects
             generators
     """
-    data = {
-        'success': False,
-        'song': None,
-    }
-
     assert band != None, "Band parameter isn't optional."
     assert song_title != None, "Song title parameter isn't optional."
 
@@ -400,7 +393,7 @@ def upload_song(user, file_mp3_handle=None, file_source_handle=None, max_song_le
 
     # save so we can use relational fields
     song.save()
-    
+
     # create the root node for song comments
     node = SongCommentNode()
     node.song = song
@@ -423,7 +416,5 @@ def upload_song(user, file_mp3_handle=None, file_source_handle=None, max_song_le
     # we incremented bytes_used in band, so save it now
     band.save()
 
-    data['song'] = song
-    data['success'] = True
-    return data
+    return {'song': song, 'success': True}
 

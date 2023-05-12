@@ -31,11 +31,5 @@ def clean_filename(title):
     returns title except now it's safe to use as a filename
     """
     allowed = string.letters + string.digits + "_-."
-    clean = ""
-    for c in title:
-        if c in allowed:
-            clean += c
-        else:
-            clean += "_"
-    return clean
+    return "".join(c if c in allowed else "_" for c in title)
     

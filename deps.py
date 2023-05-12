@@ -118,6 +118,6 @@ except ImportError:
     pass
 
 # output is a list of missing dependencies
-if len(deps) > 0:
+if deps:
     print(" ".join(deps))
 

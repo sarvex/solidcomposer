@@ -10,17 +10,13 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         for band in orm.Band.objects.all():
-            if band.folder == None:
+            if band.folder is None:
                 # break title into folder-safe string
                 allowed_chars = string.letters + string.digits + r'_-.'
                 replacement = '_'
-                safe_title = ''
-                for c in band.title:
-                    if c in allowed_chars:
-                        safe_title += c
-                    else:
-                        safe_title += replacement
-
+                safe_title = ''.join(
+                    c if c in allowed_chars else replacement for c in band.title
+                )
                 others = orm.Band.objects.filter(folder=safe_title).count()
                 if others == 0:
                     band.folder = safe_title

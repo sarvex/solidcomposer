@@ -20,9 +20,8 @@ from django.core.validators import email_re
 
 def file_hash(filename):
     md5 = hashlib.md5()
-    f = open(filename, 'rb')
-    md5.update(f.read())
-    f.close()
+    with open(filename, 'rb') as f:
+        md5.update(f.read())
     return md5.hexdigest()
 
 def create_hash(length):
@@ -30,10 +29,7 @@ def create_hash(length):
     returns a string of length length with random alphanumeric characters
     """
     chars = string.letters + string.digits
-    code = ""
-    for _ in range(length):
-        code += chars[random.randint(0, len(chars)-1)]
-    return code
+    return "".join(chars[random.randint(0, len(chars)-1)] for _ in range(length))
 
 def json_dthandler(obj):
     if isinstance(obj, datetime):
@@ -175,4 +171,4 @@ def send_html_mail(subject, message_txt, message_html, to_list):
     msg.send(fail_silently=True)
 
 def is_valid_email(email):
-    return True if email_re.match(email) else False
+    return bool(email_re.match(email))

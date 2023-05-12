@@ -63,7 +63,10 @@ comments = {}
 
 for entry in data:
     model = entry['model']
-    if model == 'projectmanager.project':
+    if model == 'main.profile':
+        profiles[entry['pk']] = entry
+
+    elif model == 'projectmanager.project':
         projects[entry['pk']] = entry
     elif model == 'projectmanager.projectversion':
         if entry['fields']['version'] == 1:
@@ -72,9 +75,6 @@ for entry in data:
             versions[entry['pk']] = entry
     elif model == 'projectmanager.projectversioncomment':
         comments[entry['pk']] = entry
-    elif model == 'main.profile':
-        profiles[entry['pk']] = entry
-
 skip_projects = [59]
 # =====================
 
@@ -192,7 +192,7 @@ for version_id, old_version in first_versions.iteritems():
         owner = tba_prof_to_sc_user[old_version['fields']['owner']]
         new_version_number = old_version['fields']['version']
         print(" - version {0}".format(new_version_number))
-        filename_appendix = "_" + str(new_version_number)
+        filename_appendix = f"_{str(new_version_number)}"
         result = upload_song(owner,
             file_mp3_handle=open_file(old_version['fields']['mp3_preview']),
             file_source_handle=open_file(old_version['fields']['file']),

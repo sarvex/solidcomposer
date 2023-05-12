@@ -43,17 +43,18 @@ class BandInvitation(SerializableModel):
     invitee = models.ForeignKey(User, null=True, blank=True, related_name="invitee")
 
     def isLink(self):
-        return not (self.code is None)
+        return self.code is not None
 
     def redeemHyperlink(self):
         "returns the hyperlink you can use to redeem this invitation."
         if self.code is None:
             return None
-        else:
-            from django.core.urlresolvers import reverse
-            from django.contrib.sites.models import Site
-            current_site = Site.objects.get_current()
-            return 'http://' + current_site.domain + reverse('workbench.redeem_invitation', args=[self.code])
+        from django.core.urlresolvers import reverse
+        from django.contrib.sites.models import Site
+        current_site = Site.objects.get_current()
+        return f'http://{current_site.domain}' + reverse(
+            'workbench.redeem_invitation', args=[self.code]
+        )
             
     def save(self, *args, **kwargs):
         if not self.id:
@@ -120,7 +121,7 @@ class UploadedSample(SerializableModel):
     band = models.ForeignKey('main.Band', null=True, blank=True)
 
     def __unicode__(self):
-        return "%s (%s): %s" % (self.user.username, self.band.title, self.title)
+        return f"{self.user.username} ({self.band.title}): {self.title}"
 
 class SampleDependency(SerializableModel):
     """
@@ -145,11 +146,8 @@ class SampleDependency(SerializableModel):
     song = models.ForeignKey('main.Song')
 
     def __unicode__(self):
-        if self.uploaded_sample is None:
-            resolution = "not resolved"
-        else:
-            resolution = "resolved"
-        return "%s (%s)" % (self.title, resolution)
+        resolution = "not resolved" if self.uploaded_sample is None else "resolved"
+        return f"{self.title} ({resolution})"
 
 class PluginDepenency(SerializableModel):
     # studio is only used when talking about users having or not having
@@ -323,7 +321,7 @@ class ProjectVersion(SerializableModel):
         if self.song is not None:
             return "%s version %i" % (self.song.title, self.version)
         elif self.new_title != '':
-            return "Rename to %s" % self.new_title
+            return f"Rename to {self.new_title}"
         elif self.provided_samples.count() > 0:
             return "Version to provide samples."
         else:
@@ -372,10 +370,7 @@ class Project(SerializableModel):
     subscribers = models.ManyToManyField(User, blank=True, related_name='project_subscribers')
 
     def __unicode__(self):
-        if self.title is not None:
-            return self.title
-
-        return "error: title not cached"
+        return self.title if self.title is not None else "error: title not cached"
 
     def save(self, *args, **kwargs):
         self.date_activity = datetime.now()

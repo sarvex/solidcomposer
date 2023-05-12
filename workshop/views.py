@@ -161,7 +161,7 @@ def ajax_create_invite(request):
     if band is None:
         return json_failure(design.bad_band_id)
 
-    if not band.openness == Band.FULL_OPEN:
+    if band.openness != Band.FULL_OPEN:
         try:
             member = BandMember.objects.get(user=request.user, band=band)
         except BandMember.DoesNotExist:
@@ -179,7 +179,7 @@ def ajax_create_invite(request):
     invite.band = band
     invite.expire_date = datetime.now() + timedelta(days=30)
 
-    if invitee == None:
+    if invitee is None:
         invite.code = create_hash(32)
         invite.save()
         data = {'url': invite.redeemHyperlink()}
@@ -309,7 +309,7 @@ def ajax_email_invite(request):
     "send a band invitation by email."
     to_email = get_val(request.POST, 'email', '')
     band = get_obj_from_request(request.POST, 'band', Band)
-    
+
     if band is None:
         return json_failure(design.bad_band_id)
 
@@ -328,7 +328,7 @@ def ajax_email_invite(request):
     except User.DoesNotExist:
         local_user = None
 
-    invite = BandInvitation()       
+    invite = BandInvitation()
     invite.inviter = request.user
     invite.band = band
     invite.role = BandMember.BAND_MEMBER
@@ -345,7 +345,7 @@ def ajax_email_invite(request):
 
         invite.invitee = local_user
         invite.save()
-        
+
         # send a heads up email
         if local_user.get_profile().email_notifications:
             context = Context({
@@ -358,7 +358,6 @@ def ajax_email_invite(request):
             message_html = get_template('workbench/email/invitation_direct.html').render(context)
             send_html_mail(subject, message_txt, message_html, [to_email])
 
-        return json_success()
     else:
         # create invitation link
         invite.expire_date = datetime.now() + timedelta(days=30)
@@ -376,7 +375,8 @@ def ajax_email_invite(request):
         message_html = get_template('workbench/email/invitation_link.html').render(context)
         send_html_mail(subject, message_txt, message_html, [to_email])
 
-        return json_success()
+
+    return json_success()
 
 @login_required
 def band(request, band_id_str):
@@ -423,18 +423,14 @@ def ajax_dependency_ownership(request):
         return json_failure(design.bad_dependency_id)
 
     have = request.POST.get('have', 'false')
-    if have == 'false':
-        have = False
-    else:
-        have = True
-
+    have = have != 'false'
     if have:
         collection.add(dep)
     else:
         collection.remove(dep)
 
     profile.save()
-    
+
     return json_success()
 
 def performFilter(filterId, projects, user=None):
@@ -584,7 +580,7 @@ def ajax_create_band(request):
     return json_failure(form_errors(form))
 
 def form_errors(form):
-    return "\n".join(['%s: %s' % (k, ', '.join(v)) for k, v in form.errors.iteritems()])
+    return "\n".join([f"{k}: {', '.join(v)}" for k, v in form.errors.iteritems()])
 
 def handle_sample_upload(fileHandle, user, band, callback=None):
     """
@@ -759,11 +755,10 @@ def ajax_provide_mp3(request):
     mp3_handle = request.FILES.get('file')
 
     result = handle_mp3_upload(mp3_handle, version.song)
-    if result['success']:
-        version.song.save()
-        return json_success()
-    else:
+    if not result['success']:
         return json_failure(result['reason'])
+    version.song.save()
+    return json_success()
 
 @json_login_required
 @json_post_required
@@ -802,7 +797,7 @@ def ajax_checkout(request):
 @json_post_required
 def ajax_checkin(request):
     project = get_obj_from_request(request.POST, 'project', Project)
-    
+
     if project is None:
         return json_failure(design.bad_project_id)
 
@@ -831,13 +826,13 @@ def ajax_checkin(request):
         entry.save()
 
         return json_success()
-    
+
     # must supply a project file
     if project_file is None:
         return json_failure(design.must_submit_project_file)
 
     new_version_number = project.latest_version.version + 1
-    filename_appendix = "_" + str(new_version_number)
+    filename_appendix = f"_{str(new_version_number)}"
 
     # upload the song and make a new project version
     result = upload_song(request.user,
@@ -1040,7 +1035,7 @@ def download_sample(request, sample_id_str, sample_title):
 
     # return to browser
     response = HttpResponse(FileWrapper(sample_file_h), mimetype='application/octet-stream')
-    response['Content-Disposition'] = 'attachment; filename="%s"' % sample_title
+    response['Content-Disposition'] = f'attachment; filename="{sample_title}"'
     response['Content-Length'] = os.path.getsize(sample_file_h.name)
 
     sample_file_h.seek(0)
@@ -1061,7 +1056,7 @@ def download_zip(request):
         want_project = False
 
         wanted_sample_ids = []
-        
+
         for wanted_sample in wanted_samples:
             if wanted_sample == 'project':
                 want_project = True
@@ -1085,7 +1080,7 @@ def download_zip(request):
         storage.engine.retrieve(file_id, tmp.name)
         z.write(tmp.name, title)
         tmp.close()
-        
+
     if want_project:
         _path, title = os.path.split(song.source_file)
         store_file_id(song.source_file, title)
@@ -1097,7 +1092,9 @@ def download_zip(request):
     z.close()
 
     response = HttpResponse(FileWrapper(zip_file_h), mimetype='application/zip')
-    response['Content-Disposition'] = 'attachment; filename="%s"' % clean_filename(song.displayString() + '.zip')
+    response[
+        'Content-Disposition'
+    ] = f"""attachment; filename="{clean_filename(f'{song.displayString()}.zip')}\""""
     response['Content-Length'] = zip_file_h.tell()
 
     zip_file_h.seek(0)

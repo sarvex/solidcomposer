@@ -57,24 +57,26 @@ def ajax_hear(request):
 
             data['messages'] = [add_to_message(x) for x in ChatMessage.objects.filter(room=room, id__gt=last_message_id)]
 
-    if data['user']['permission_write']:
-        # mark an appearance in the ChatRoom
-        if request.user.is_authenticated() and room.is_active():
-            appearances = Appearance.objects.filter(person=request.user, room=room)
-            if appearances.count() > 0:
-                appearances[0].save() # update the timestamp
-            else:
-                new_appearance = Appearance()
-                new_appearance.room = room
-                new_appearance.person = request.user
-                new_appearance.save()
+    if (
+        data['user']['permission_write']
+        and request.user.is_authenticated()
+        and room.is_active()
+    ):
+        appearances = Appearance.objects.filter(person=request.user, room=room)
+        if appearances.count() > 0:
+            appearances[0].save() # update the timestamp
+        else:
+            new_appearance = Appearance()
+            new_appearance.room = room
+            new_appearance.person = request.user
+            new_appearance.save()
 
-                # join message
-                m = ChatMessage()
-                m.room=room
-                m.type=ChatMessage.JOIN
-                m.author=request.user
-                m.save()
+            # join message
+            m = ChatMessage()
+            m.room=room
+            m.type=ChatMessage.JOIN
+            m.author=request.user
+            m.save()
 
     return json_response(data)
 

@@ -18,7 +18,6 @@ class Migration(DataMigration):
 
     def backwards(self, orm):
         "not necessary."
-        pass
 
 
     models = {

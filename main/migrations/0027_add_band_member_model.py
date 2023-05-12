@@ -16,7 +16,6 @@ class Migration(DataMigration):
     
     def backwards(self, orm):
         "No changes necessary"
-        pass
     
     models = {
         'auth.group': {

@@ -21,8 +21,8 @@ if len(sys.argv) < 3:
 template_name = sys.argv[1]
 subject = sys.argv[2]
 
-html = template_name + ".html"
-txt = template_name + ".txt"
+html = f"{template_name}.html"
+txt = f"{template_name}.txt"
 current_site = Site.objects.get_current()
 
 for profile in Profile.objects.all():
@@ -32,8 +32,8 @@ for profile in Profile.objects.all():
             'user': profile.user,
             'host': current_site.domain,
         })
-        message_txt = get_template(template_name + '.txt').render(context)
-        message_html = get_template(template_name + '.html').render(context)
+        message_txt = get_template(f'{template_name}.txt').render(context)
+        message_html = get_template(f'{template_name}.html').render(context)
         send_html_mail(subject, message_txt, message_html, [profile.user.email])
     else:
         print("Skipping {0}...".format(profile.user.username))

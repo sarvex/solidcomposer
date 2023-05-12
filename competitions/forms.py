@@ -101,15 +101,14 @@ class CreateCompetitionForm(forms.Form):
             self._errors['submission_deadline_date'] = self.error_class([msg])
 
         # clean listening_party_date
-        if not cleaned_data.get('party_immediately'):
-            if in_have_party:
-                if in_lp_date is None:
-                    msg = design.if_you_want_lp_set_date
-                    self._errors['listening_party_date'] = self.error_class([msg])
-                elif in_lp_date < in_deadline:
-                    msg = design.lp_gt_submission_deadline
-                    self._errors['listening_party_date'] = self.error_class([msg])
-        
+        if not cleaned_data.get('party_immediately') and in_have_party:
+            if in_lp_date is None:
+                msg = design.if_you_want_lp_set_date
+                self._errors['listening_party_date'] = self.error_class([msg])
+            elif in_lp_date < in_deadline:
+                msg = design.lp_gt_submission_deadline
+                self._errors['listening_party_date'] = self.error_class([msg])
+
         return cleaned_data
 
 class EditCompetitionForm(CreateCompetitionForm):

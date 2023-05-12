@@ -11,7 +11,7 @@ setup_environ(settings)
 
 
 for song in Song.objects.all():
-    print("redoing %s - %s..." % (song.band.title, song.title))
+    print(f"redoing {song.band.title} - {song.title}...")
     storage.engine.delete(song.waveform_img)
     # get the mp3 from storage
     mp3_handle = tempfile.NamedTemporaryFile(mode='r+b')
@@ -19,5 +19,5 @@ for song in Song.objects.all():
     main.uploadsong.generate_waveform(song, mp3_handle.name)
     # clean up
     mp3_handle.close()
-    
+
     song.save()

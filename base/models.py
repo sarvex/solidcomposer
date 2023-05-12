@@ -11,14 +11,9 @@ def create_url(title, is_unique=None):
     allowed_chars = string.letters + string.digits + r'_-.'
     replacement = '_'
 
-    # break title into url safe string
-    safe_title = ''
-    for c in title.lower():
-        if c in allowed_chars:
-            safe_title += c
-        else:
-            safe_title += replacement
-
+    safe_title = ''.join(
+        c if c in allowed_chars else replacement for c in title.lower()
+    )
     if is_unique is None:
         return safe_title
 
@@ -51,11 +46,7 @@ class SerializableModel(models.Model):
         return (forwards, new_chains)
         
     def process_access(self, access):
-        if access == self.OWNER:
-            # de-esclate from owner to public when forwarding
-            return self.PUBLIC
-        else:
-            return access
+        return self.PUBLIC if access == self.OWNER else access
 
     def to_dict(self, access=PUBLIC, chains=[]):
         forwards, new_chains = self.process_chains(chains)
